@@ -1,7 +1,16 @@
 import sys
 import traceback
 import requests
+import logging
 import execution
+
+# 配置日志
+logger = logging.getLogger("comfyui-textin-watermark")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 callback_config = {
     "enable": False,
@@ -44,7 +53,10 @@ def _send(event, prompt_id, error=None):
     if error:
         payload["error"] = error
     try:
-        requests.post(callback_config["url"], json=payload, timeout=10)
+        logger.info(f"[Workflow Callback] Sending callback. url {callback_config['url']}, payload: {payload}")
+        response = requests.post(callback_config["url"], json=payload, timeout=10)
+        response.raise_for_status()
+        logger.info(f"[Workflow Callback] Response: {response.text}")
     except Exception as e:
         print(f"[Workflow Monitor] Failed to send callback: {e}")
 
