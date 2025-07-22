@@ -1,7 +1,3 @@
-from .workflow_callback import set_callback_settings
-
-
-
 class WorkflowCallbackConfig:
     @classmethod
     def INPUT_TYPES(cls):
@@ -21,6 +17,7 @@ class WorkflowCallbackConfig:
     CATEGORY = "utils/monitor_callbacks"
 
     def set_callback_config(self, callback_enable=True, callback_url="", extra_info=None):
+        from .workflow_callback import set_callback_settings
         set_callback_settings(callback_enable, callback_url, extra_info)
         print(f"[Monitor] Callback enabled: {callback_enable}, URL: {callback_url}, extra_info: {extra_info}")
         return ()

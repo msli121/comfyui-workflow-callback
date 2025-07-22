@@ -6,7 +6,7 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WorkflowCallbackConfig": "🔔 Workflow Callback Monitor",
+    "WorkflowCallbackConfig": "🔔 Workflow Callback 配置",
 }
 
 # 初始化时执行 patch 注入监听器
