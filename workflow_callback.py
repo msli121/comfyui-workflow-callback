@@ -22,10 +22,14 @@ def int_patch():
     original_execute = execution.execute
 
     def wrapped_execute(*args, **kwargs):
+        prompt_id = None
         print("=== [DEBUG] wrapped_execute called ===")
         print("args:")
         for i, arg in enumerate(args):
-            print(f"  args[{i}]: {type(arg)} -> {repr(arg)}")
+            if isinstance(arg, dict) and arg.get('extra_pnginfo'):
+                prompt_id = arg.get('extra_pnginfo', {}).get('workflow', {}).get('id', None)
+            else:
+                print(f"  args[{i}]: {type(arg)} -> {repr(arg)}")
         print("kwargs:")
         for key, value in kwargs.items():
             print(f"  {key}: {type(value)} -> {repr(value)}")
@@ -49,7 +53,7 @@ def int_patch():
         outputs = original_execute(*args, **kwargs)
         # 打印结果
         print("=== [DEBUG] outputs ===")
-        print(outputs)
+        print(f"{type(outputs)} -> {repr(outputs)}")
         print("=== [END DEBUG] ===")
 
         # if outputs.get("system", {}).get("execution_error"):
@@ -60,25 +64,6 @@ def int_patch():
         return outputs
 
     execution.execute = wrapped_execute
-
-# def patch_prompt_queue():
-#     original_execute = execution.execute
-#
-#     def wrapped_execute(prompt_id, prompt, *args, **kwargs):
-#         real_prompt_id = prompt.get("prompt_id", "")
-#         if callback_config["enable"]:
-#             _send("start", prompt_id)
-#         try:
-#             result = original_execute(prompt_id, prompt, *args, **kwargs)
-#             if callback_config["enable"]:
-#                 _send("success", prompt_id)
-#             return result
-#         except Exception:
-#             if callback_config["enable"]:
-#                 _send("fail", prompt_id, _get_error())
-#             raise
-#
-#     execution.execute = wrapped_execute
 
 
 def set_callback_settings(enable, url, extra_info):
