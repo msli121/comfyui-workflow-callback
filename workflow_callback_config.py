@@ -12,7 +12,7 @@ class WorkflowCallbackConfig:
         }
 
     RETURN_TYPES = ()
-    FUNCTION = "set_callback_settings"
+    FUNCTION = "set_callback_config"
     OUTPUT_NODE = True
     CATEGORY = "utils/monitor_callbacks"
 
