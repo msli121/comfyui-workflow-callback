@@ -80,7 +80,7 @@ def set_callback_settings(enable, url, extra_info):
     callback_config["extra_info"] = extra_info
 
 
-def _send(event, prompt_id, msg=None):
+def _send(event, prompt_id, error=None):
     if not callback_config["enable"]:
         logger.warning(f"[Workflow Callback] not enabled")
         return
@@ -88,10 +88,10 @@ def _send(event, prompt_id, msg=None):
         logger.warning(f"[Workflow Callback] url is empty")
         return
     payload = {
-        "event": event,  # start, success, failed
-        "prompt_id": prompt_id,
+        "status": event,  # start, success, failed
+        "id": prompt_id,
         "extra_info": callback_config["extra_info"],
-        "msg": msg,
+        "error": error,
     }
     try:
         logger.info(f"[Workflow Callback] Request. url {callback_config['url']}, payload: {payload}")
