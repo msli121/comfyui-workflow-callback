@@ -1,8 +1,8 @@
-from .workflow_monitor import WorkflowMonitor
+from .workflow_callback_config import WorkflowCallbackConfig
 from .workflow_callback import init_patch
 
 NODE_CLASS_MAPPINGS = {
-    "WorkflowCallbackConfig": WorkflowMonitor,
+    "WorkflowCallbackConfig": WorkflowCallbackConfig,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
