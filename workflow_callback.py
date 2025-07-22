@@ -18,50 +18,57 @@ callback_config = {
     "extra_info": ""
 }
 
+
 def int_patch():
     original_execute = execution.execute
 
+    def print_args(*args, **kwargs):
+        logger.info("=== [START] print_args ===")
+        for i, arg in enumerate(args):
+            logger.info(f"  args[{i}]: {type(arg)} -> {repr(arg)}")
+        logger.info("=== [END] print_args ===")
+
+        logger.info("=== [START] print_kwargs ===")
+        for key, value in kwargs.items():
+            logger.info(f"  {key}: {type(value)} -> {repr(value)}")
+        logger.info("=== [END] print_kwargs ===")
+
     def wrapped_execute(*args, **kwargs):
         prompt_id = None
-        prompt = None
-        print("=== [DEBUG] wrapped_execute called ===")
-        print("args:")
-        for i, arg in enumerate(args):
-            if isinstance(arg, dict) and arg.get('extra_pnginfo'):
-                prompt_id = arg.get('extra_pnginfo', {}).get('workflow', {}).get('id', None)
-                prompt = arg
-            else:
-                print(f"  args[{i}]: {type(arg)} -> {repr(arg)}")
-        print("kwargs:")
-        for key, value in kwargs.items():
-            print(f"  {key}: {type(value)} -> {repr(value)}")
-        print("=== [END DEBUG] ===")
+        current_node_id = None
+        nodes = []
 
-        print("=== [DEBUG] prompt_id ===")
-        print(f"prompt_id: {prompt_id}")
-        print(f"prompt: {prompt}")
-        print("=== [END DEBUG] ===")
+        # 打印日志信息
+        # print_args(*args, **kwargs)
 
-        # # 判断 prompt_id 和 prompt 的位置
-        # if len(args) >= 2 and isinstance(args[1], dict):
-        #     prompt_id = args[0] if isinstance(args[0], str) else None
-        #     prompt = args[1]
-        # elif len(args) >= 3 and isinstance(args[2], dict):
-        #     # 第一个是 self
-        #     prompt_id = args[1] if isinstance(args[1], str) else None
-        #     prompt = args[2]
-        # else:
-        #     prompt_id = "unknown"
-        #     prompt = {}
-        #
-        # if callback_config["enable"]:
-        #     _send("start", prompt_id)
+        # 获取当前执行节点ID
+        arg_3 = args[3]
+        # arg_3 是一个字符串并且是数字
+        if isinstance(arg_3, str) and arg_3.isdigit():
+            current_node_id = int(arg_3)
+
+        # 获取prompt信息
+        arg_4 = args[4]
+        if isinstance(arg_4, dict) and arg_4.get("extra_pnginfo"):
+            prompt_id = arg_4.get("extra_pnginfo", {}).get("workflow", {}).get("id", None)
+            nodes = arg_4.get("extra_pnginfo", {}).get("workflow", {}).get("nodes", [])
+            # nodes 中对象按order排序
+            nodes = sorted(nodes, key=lambda x: x.get("order", 0))
+
+        logger.info(f"[wrapped_execute] prompt_id: {prompt_id}")
+        logger.info(f"[wrapped_execute] current_node_id: {current_node_id}")
+        logger.info(f"[wrapped_execute] last order node: {nodes[-1]}")
 
         outputs = original_execute(*args, **kwargs)
-        # 打印结果
-        print("=== [DEBUG] outputs ===")
-        print(f"{type(outputs)} -> {repr(outputs)}")
-        print("=== [END DEBUG] ===")
+
+        exec_result = outputs[0]
+        exec_msg = outputs[1]
+        exec_exception = outputs[2]
+
+        logger.info(f"[wrapped_execute] output exec_result: {exec_result}")
+        logger.info(f"[wrapped_execute] output exec_msg: {exec_msg}")
+        logger.info(f"[wrapped_execute] outputs exec_exception: {exec_exception}")
+
 
         # if outputs.get("system", {}).get("execution_error"):
         #     _send("fail", prompt_id, error=_get_error_msg(outputs))
@@ -93,12 +100,13 @@ def _send(event, prompt_id, error=None):
         response.raise_for_status()
         logger.info(f"[Workflow Callback] Response: {response.text}")
     except Exception as e:
-        print(f"[Workflow Monitor] Failed to send callback: {e}")
+        logger.info(f"[Workflow Monitor] Failed to send callback: {e}")
 
 
 def _get_error():
     etype, evalue, tb = sys.exc_info()
-    return ''.join(traceback.format_exception(etype, evalue, tb))
+    return "".join(traceback.format_exception(etype, evalue, tb))
+
 
 def _get_error_msg(outputs):
     err = outputs.get("system", {}).get("execution_error", None)
