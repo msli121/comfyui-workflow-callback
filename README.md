@@ -19,8 +19,8 @@
 
 ```json
 {
-  "event": "start" | "success" | "fail",
-  "prompt_id": "...",
+  "status": "start" | "success" | "fail",
+  "id": "...",
   "extra_info": "...",
-  "error": "...optional"
+  "error": "..."
 }
