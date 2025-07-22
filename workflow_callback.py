@@ -1,8 +1,7 @@
-import sys
-import traceback
-import requests
 import logging
+
 import execution
+import requests
 
 # 配置日志
 logger = logging.getLogger("comfyui-textin-watermark")
@@ -47,8 +46,8 @@ def int_patch():
                 first_node_id = int(nodes[0].get("id"))
                 last_node_id = int(nodes[-1].get("id"))
 
-        logger.info(f"[wrapped_execute] prompt_id: {prompt_id}")
-        logger.info(f"[wrapped_execute] current_node_id: {current_node_id}")
+        # logger.info(f"[wrapped_execute] prompt_id: {prompt_id}")
+        # logger.info(f"[wrapped_execute] current_node_id: {current_node_id}")
 
         outputs = original_execute(*args, **kwargs)
 
@@ -56,9 +55,9 @@ def int_patch():
         exec_msg = outputs[1]
         exec_exception = outputs[2]
 
-        logger.info(f"[wrapped_execute] output exec_result => type:{type(exec_result)} value: {exec_result.value} ")
-        logger.info(f"[wrapped_execute] output exec_msg => type:{type(exec_msg)} value: {exec_msg}")
-        logger.info(f"[wrapped_execute] output exec_exception => type:{type(exec_exception)} value: {exec_exception}")
+        # logger.info(f"[wrapped_execute] output exec_result => type:{type(exec_result)} value: {exec_result.value} ")
+        # logger.info(f"[wrapped_execute] output exec_msg => type:{type(exec_msg)} value: {exec_msg}")
+        # logger.info(f"[wrapped_execute] output exec_exception => type:{type(exec_exception)} value: {exec_exception}")
 
         # 回调处理
         if int(exec_result.value) == 0:  # 节点执行成功
@@ -81,7 +80,7 @@ def set_callback_settings(enable, url, extra_info):
     callback_config["extra_info"] = extra_info
 
 
-def _send(event, prompt_id, error=None):
+def _send(event, prompt_id, msg=None):
     if not callback_config["enable"]:
         logger.warning(f"[Workflow Callback] not enabled")
         return
@@ -91,10 +90,9 @@ def _send(event, prompt_id, error=None):
     payload = {
         "event": event,  # start, success, failed
         "prompt_id": prompt_id,
-        "extra_info": callback_config["extra_info"]
+        "extra_info": callback_config["extra_info"],
+        "msg": msg,
     }
-    if error:
-        payload["error"] = error
     try:
         logger.info(f"[Workflow Callback] Request. url {callback_config['url']}, payload: {payload}")
         response = requests.post(callback_config["url"], json=payload, timeout=10)
