@@ -19,7 +19,7 @@
 
 ```json
 {
-  "status": "start" | "success" | "fail",
+  "status": "start" | "success" | "failed",
   "id": "...",
   "extra_info": "...",
   "error": "..."
