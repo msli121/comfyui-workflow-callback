@@ -44,7 +44,7 @@ def _send(event, prompt_id, error=None):
     if error:
         payload["error"] = error
     try:
-        requests.post(callback_config["url"], json=payload, timeout=5)
+        requests.post(callback_config["url"], json=payload, timeout=10)
     except Exception as e:
         print(f"[Workflow Monitor] Failed to send callback: {e}")
 
