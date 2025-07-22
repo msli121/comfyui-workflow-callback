@@ -1,62 +1,54 @@
-import requests
 import sys
 import traceback
-from server import prompt_queue
-from server import PromptServer
+import requests
+import execution
 
-registered_callbacks = {
+callback_config = {
     "enable": False,
     "url": "",
     "extra_info": ""
 }
 
-def init_patch():
-    """在 ComfyUI 启动时注入监听器"""
-    def on_prompt_start(prompt):
-        if registered_callbacks["enable"] and registered_callbacks["url"]:
-            prompt_id = prompt.get("prompt_id", "")
-            _send_callback("start", prompt_id)
 
-    def on_prompt_end(prompt):
-        if registered_callbacks["enable"] and registered_callbacks["url"]:
-            prompt_id = prompt.get("prompt_id", "")
-            _send_callback("success", prompt_id)
+def patch_prompt_queue():
+    original_execute = execution.execute
 
-    def on_prompt_error(prompt, error):
-        if registered_callbacks["enable"] and registered_callbacks["url"]:
-            prompt_id = prompt.get("prompt_id", "")
-            error_msg = _get_last_error_message()
-            _send_callback("fail", prompt_id, error_msg)
+    def wrapped_execute(prompt_id, prompt, *args, **kwargs):
+        if callback_config["enable"]:
+            _send("start", prompt_id)
+        try:
+            result = original_execute(prompt_id, prompt, *args, **kwargs)
+            if callback_config["enable"]:
+                _send("success", prompt_id)
+            return result
+        except Exception:
+            if callback_config["enable"]:
+                _send("fail", prompt_id, _get_error())
+            raise
 
-    # 注册监听
-    prompt_queue.on_prompt_start(on_prompt_start)
-    prompt_queue.on_prompt_end(on_prompt_end)
-    prompt_queue.on_prompt_error(on_prompt_error)
+    execution.execute = wrapped_execute
 
 
-def register_callback_settings(enable, url, extra_info):
-    registered_callbacks["enable"] = enable
-    registered_callbacks["url"] = url
-    registered_callbacks["extra_info"] = str(extra_info) if extra_info else ""
+def set_callback_settings(enable, url, extra_info):
+    callback_config["enable"] = enable
+    callback_config["url"] = url
+    callback_config["extra_info"] = extra_info
 
 
-def _send_callback(event, prompt_id, error=None):
-    data = {
+def _send(event, prompt_id, error=None):
+    payload = {
         "event": event,
         "prompt_id": prompt_id,
-        "extra_info": registered_callbacks.get("extra_info", "")
+        "extra_info": callback_config["extra_info"]
     }
     if error:
-        data["error"] = error
-
+        payload["error"] = error
     try:
-        requests.post(registered_callbacks["url"], json=data, timeout=10)
+        requests.post(callback_config["url"], json=payload, timeout=5)
     except Exception as e:
-        print(f"[Monitor] Callback error: {e}")
+        print(f"[Workflow Monitor] Failed to send callback: {e}")
 
 
-def _get_last_error_message():
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    if exc_type:
-        return ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    return "Unknown error"
+def _get_error():
+    etype, evalue, tb = sys.exc_info()
+    return ''.join(traceback.format_exception(etype, evalue, tb))
