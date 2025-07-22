@@ -22,24 +22,14 @@ callback_config = {
 def int_patch():
     original_execute = execution.execute
 
-    def print_args(*args, **kwargs):
-        logger.info("=== [START] print_args ===")
-        for i, arg in enumerate(args):
-            logger.info(f"  args[{i}]: {type(arg)} -> {repr(arg)}")
-        logger.info("=== [END] print_args ===")
-
-        logger.info("=== [START] print_kwargs ===")
-        for key, value in kwargs.items():
-            logger.info(f"  {key}: {type(value)} -> {repr(value)}")
-        logger.info("=== [END] print_kwargs ===")
-
     def wrapped_execute(*args, **kwargs):
         prompt_id = None
         current_node_id = None
-        nodes = []
+        first_node_id = None
+        last_node_id = None
 
         # 打印日志信息
-        # print_args(*args, **kwargs)
+        # _print_args(*args, **kwargs)
 
         # 获取当前执行节点ID
         arg_3 = args[3]
@@ -52,27 +42,32 @@ def int_patch():
         if isinstance(arg_4, dict) and arg_4.get("extra_pnginfo"):
             prompt_id = arg_4.get("extra_pnginfo", {}).get("workflow", {}).get("id", None)
             nodes = arg_4.get("extra_pnginfo", {}).get("workflow", {}).get("nodes", [])
-            # nodes 中对象按order排序
-            nodes = sorted(nodes, key=lambda x: x.get("order", 0))
+            if len(nodes) > 0:
+                nodes = sorted(nodes, key=lambda x: x.get("order", 0))
+                first_node_id = int(nodes[0].get("id"))
+                last_node_id = int(nodes[-1].get("id"))
 
         logger.info(f"[wrapped_execute] prompt_id: {prompt_id}")
         logger.info(f"[wrapped_execute] current_node_id: {current_node_id}")
-        #logger.info(f"[wrapped_execute] last order node: {nodes[-1]}")
 
         outputs = original_execute(*args, **kwargs)
 
         exec_result = outputs[0]
-        exec_exception = outputs[1]
+        # exec_exception = outputs[1]
         exec_msg = outputs[2]
 
         logger.info(f"[wrapped_execute] output exec_result: {exec_result.value} {type(exec_result)}")
         logger.info(f"[wrapped_execute] output exec_msg: {exec_msg}")
-        # logger.info(f"[wrapped_execute] outputs exec_exception: {exec_exception}")
 
-        # if outputs.get("system", {}).get("execution_error"):
-        #     _send("fail", prompt_id, error=_get_error_msg(outputs))
-        # else:
-        #     _send("success", prompt_id)
+        # 回调处理
+        if int(exec_result.value) == 0:  # 节点执行成功
+            if first_node_id is not None and last_node_id is not None:
+                if current_node_id <= first_node_id:
+                    _send("start", prompt_id)
+                elif current_node_id >= last_node_id:
+                    _send("success", prompt_id)
+        elif int(exec_result.value) == 1:  # 节点执行失败
+            _send("failed", prompt_id, exec_msg)
 
         return outputs
 
@@ -86,8 +81,14 @@ def set_callback_settings(enable, url, extra_info):
 
 
 def _send(event, prompt_id, error=None):
+    if not callback_config["enable"]:
+        logger.warning(f"[Workflow Callback] not enabled")
+        return
+    if not callback_config["url"] or len(callback_config["url"]) == 0:
+        logger.warning(f"[Workflow Callback] url is empty")
+        return
     payload = {
-        "event": event,
+        "event": event,  # start, success, failed
         "prompt_id": prompt_id,
         "extra_info": callback_config["extra_info"]
     }
@@ -101,14 +102,13 @@ def _send(event, prompt_id, error=None):
     except Exception as e:
         logger.info(f"[Workflow Monitor] Failed to send callback: {e}")
 
+def _print_args(*args, **kwargs):
+    logger.info("=== [START] print_args ===")
+    for i, arg in enumerate(args):
+        logger.info(f"  args[{i}]: {type(arg)} -> {repr(arg)}")
+    logger.info("=== [END] print_args ===")
 
-def _get_error():
-    etype, evalue, tb = sys.exc_info()
-    return "".join(traceback.format_exception(etype, evalue, tb))
-
-
-def _get_error_msg(outputs):
-    err = outputs.get("system", {}).get("execution_error", None)
-    if err:
-        return str(err)
-    return "Unknown error"
+    logger.info("=== [START] print_kwargs ===")
+    for key, value in kwargs.items():
+        logger.info(f"  {key}: {type(value)} -> {repr(value)}")
+    logger.info("=== [END] print_kwargs ===")
