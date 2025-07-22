@@ -2,6 +2,11 @@
 
 这个插件用于监听 ComfyUI 工作流执行状态（开始、成功、失败），并向指定的 HTTP 回调地址发送通知。
 
+## Tip
+
+当前实现基于 ComfyUI version: 0.3.43，其他版本的ComfyUI可能会有差异，可自行参考解决
+
+
 ## 📦 安装方式
 
 将整个文件夹放入 `ComfyUI/custom_nodes/comfyui-workflow-callback/`

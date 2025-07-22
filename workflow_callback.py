@@ -57,18 +57,17 @@ def int_patch():
 
         logger.info(f"[wrapped_execute] prompt_id: {prompt_id}")
         logger.info(f"[wrapped_execute] current_node_id: {current_node_id}")
-        logger.info(f"[wrapped_execute] last order node: {nodes[-1]}")
+        #logger.info(f"[wrapped_execute] last order node: {nodes[-1]}")
 
         outputs = original_execute(*args, **kwargs)
 
         exec_result = outputs[0]
-        exec_msg = outputs[1]
-        exec_exception = outputs[2]
+        exec_exception = outputs[1]
+        exec_msg = outputs[2]
 
-        logger.info(f"[wrapped_execute] output exec_result: {exec_result}")
+        logger.info(f"[wrapped_execute] output exec_result: {exec_result.value} {type(exec_result)}")
         logger.info(f"[wrapped_execute] output exec_msg: {exec_msg}")
-        logger.info(f"[wrapped_execute] outputs exec_exception: {exec_exception}")
-
+        # logger.info(f"[wrapped_execute] outputs exec_exception: {exec_exception}")
 
         # if outputs.get("system", {}).get("execution_error"):
         #     _send("fail", prompt_id, error=_get_error_msg(outputs))
