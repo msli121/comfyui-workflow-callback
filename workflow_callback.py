@@ -53,11 +53,12 @@ def int_patch():
         outputs = original_execute(*args, **kwargs)
 
         exec_result = outputs[0]
-        # exec_exception = outputs[1]
-        exec_msg = outputs[2]
+        exec_msg = outputs[1]
+        exec_exception = outputs[2]
 
-        logger.info(f"[wrapped_execute] output exec_result: {exec_result.value} {type(exec_result)}")
-        logger.info(f"[wrapped_execute] output exec_msg: {exec_msg}")
+        logger.info(f"[wrapped_execute] output exec_result => type:{type(exec_result)} value: {exec_result.value} ")
+        logger.info(f"[wrapped_execute] output exec_msg => type:{type(exec_msg)} value: {exec_msg}")
+        logger.info(f"[wrapped_execute] output exec_exception => type:{type(exec_exception)} value: {exec_exception}")
 
         # 回调处理
         if int(exec_result.value) == 0:  # 节点执行成功
@@ -66,8 +67,8 @@ def int_patch():
                     _send("start", prompt_id)
                 elif current_node_id >= last_node_id:
                     _send("success", prompt_id)
-        elif int(exec_result.value) == 1:  # 节点执行失败
-            _send("failed", prompt_id, exec_msg)
+        elif exec_exception is not None:  # 节点执行失败
+            _send("failed", prompt_id, str(exec_exception))
 
         return outputs
 
