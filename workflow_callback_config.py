@@ -5,10 +5,8 @@ class WorkflowCallbackConfig:
             "required": {
                 "callback_enable": ("BOOLEAN", {"default": True}),
                 "callback_url": ("STRING", {"multiline": False, "default": ""}),
+                "extra_info": ("STRING", {"multiline": False, "default": ""}),
             },
-            "optional": {
-                "extra_info": ("ANY", {"multiline": False, "default": ""}),
-            }
         }
 
     RETURN_TYPES = ()
