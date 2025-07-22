@@ -23,16 +23,23 @@ def int_patch():
 
     def wrapped_execute(*args, **kwargs):
         prompt_id = None
+        prompt = None
         print("=== [DEBUG] wrapped_execute called ===")
         print("args:")
         for i, arg in enumerate(args):
             if isinstance(arg, dict) and arg.get('extra_pnginfo'):
                 prompt_id = arg.get('extra_pnginfo', {}).get('workflow', {}).get('id', None)
+                prompt = arg
             else:
                 print(f"  args[{i}]: {type(arg)} -> {repr(arg)}")
         print("kwargs:")
         for key, value in kwargs.items():
             print(f"  {key}: {type(value)} -> {repr(value)}")
+        print("=== [END DEBUG] ===")
+
+        print("=== [DEBUG] prompt_id ===")
+        print(f"prompt_id: {prompt_id}")
+        print(f"prompt: {prompt}")
         print("=== [END DEBUG] ===")
 
         # # 判断 prompt_id 和 prompt 的位置
