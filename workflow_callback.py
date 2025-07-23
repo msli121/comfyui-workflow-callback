@@ -14,6 +14,7 @@ logger.addHandler(ch)
 callback_config = {
     "enable": False,
     "url": "",
+    "task_id": "",
     "extra_info": ""
 }
 
@@ -63,34 +64,54 @@ def int_patch():
         if int(exec_result.value) == 0:  # 节点执行成功
             if first_node_id is not None and last_node_id is not None:
                 if current_node_id <= first_node_id:
-                    _send("start", prompt_id)
+                    _send(status="start", prompt_id=prompt_id)
                 elif current_node_id >= last_node_id:
-                    _send("success", prompt_id)
+                    _send(status="success", prompt_id=prompt_id)
         elif exec_exception is not None:  # 节点执行失败
-            _send("failed", prompt_id, str(exec_exception))
+            _send(status="failed", prompt_id=prompt_id, error=str(exec_exception))
 
         return outputs
 
     execution.execute = wrapped_execute
 
 
-def set_callback_settings(enable, url, extra_info):
+def set_callback_settings(enable, url, task_id, extra_info):
     callback_config["enable"] = enable
     callback_config["url"] = url
+    callback_config["task_id"] = task_id
     callback_config["extra_info"] = extra_info
 
 
-def _send(event, prompt_id, error=None):
-    if not callback_config["enable"]:
+def _send(status, prompt_id, error=None):
+    enable = callback_config["enable"]
+    callback_url = callback_config["url"]
+    task_id = callback_config["task_id"]
+    extra_info = callback_config["extra_info"]
+    send_callback_req(enable=enable,
+                      callback_url=callback_url,
+                      status=status,
+                      prompt_id=prompt_id,
+                      task_id=task_id,
+                      error=error,
+                      extra_info=extra_info)
+
+
+def send_callback_req(enable=False, callback_url=None, status=None,
+                      prompt_id=None, error=None, task_id=None, extra_info=None):
+    if not enable:
         logger.warning(f"[Workflow Callback] not enabled")
         return
-    if not callback_config["url"] or len(callback_config["url"]) == 0:
-        logger.warning(f"[Workflow Callback] url is empty")
+    if not callback_url or len(callback_url) == 0:
+        logger.warning(f"[Workflow Callback] callback_url is empty")
+        return
+    if not status:
+        logger.warning(f"[Workflow Callback] status is {status}")
         return
     payload = {
-        "status": event,  # start, success, failed
-        "id": prompt_id,
-        "extra_info": callback_config["extra_info"],
+        "status": status,  # start, success, failed
+        "prompt_id": prompt_id,
+        "task_id": task_id,
+        "extra_info": extra_info or callback_config["extra_info"] or "",
         "error": error,
     }
     headers = {
