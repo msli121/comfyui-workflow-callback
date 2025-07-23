@@ -24,7 +24,7 @@ class SuccessCallbackConfig:
     FUNCTION = "success_callback"
     CATEGORY = "utils/success_callbacks"
 
-    def success_callback(self, enable=False, callback_url="", task_id="", extra_info=None):
+    def success_callback(self, enable=True, callback_url="", task_id="", extra_info=None):
         try:
             send_callback_req(enable=enable, callback_url=callback_url, status="success", task_id=task_id,
                               extra_info=extra_info)

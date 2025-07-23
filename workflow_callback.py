@@ -75,7 +75,7 @@ def int_patch():
     execution.execute = wrapped_execute
 
 
-def set_callback_settings(enable, url, task_id, extra_info):
+def set_callback_settings(enable=False, url=None, task_id=None, extra_info=None):
     callback_config["enable"] = enable
     callback_config["url"] = url
     callback_config["task_id"] = task_id
@@ -104,7 +104,7 @@ def send_callback_req(enable=False, callback_url=None, status=None,
     if not callback_url or len(callback_url) == 0:
         logger.warning(f"[Workflow Callback] callback_url is empty")
         return
-    if not status:
+    if status is None:
         logger.warning(f"[Workflow Callback] status is {status}")
         return
     payload = {
