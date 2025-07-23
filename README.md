@@ -31,3 +31,5 @@
 ## 示例图片
 
 [demo.png](demo.png)
+
+[demo2.png](demo2.png)
