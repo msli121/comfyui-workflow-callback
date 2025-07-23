@@ -93,13 +93,19 @@ def _send(event, prompt_id, error=None):
         "extra_info": callback_config["extra_info"],
         "error": error,
     }
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    }
     try:
         logger.info(f"[Workflow Callback] Request. url {callback_config['url']}, payload: {payload}")
-        response = requests.post(callback_config["url"], json=payload, timeout=10)
+        response = requests.post(callback_config["url"], headers=headers, json=payload, timeout=10)
         response.raise_for_status()
         logger.info(f"[Workflow Callback] Response: {response.text}")
     except Exception as e:
         logger.info(f"[Workflow Monitor] Failed to send callback: {e}")
+
 
 def _print_args(*args, **kwargs):
     logger.info("=== [START] print_args ===")
