@@ -1,5 +1,5 @@
 from .workflow_callback_config import WorkflowCallbackConfig
-from .success_callback import SuccessCallbackConfig
+from .success_callback_config import SuccessCallbackConfig
 from .workflow_callback import int_patch
 
 NODE_CLASS_MAPPINGS = {
