@@ -19,8 +19,15 @@
 
 ```json
 {
-  "status": "start" | "success" | "failed",
-  "id": "...",
+  "status": "start" // "start" "success" | "failed",
+  "prompt_id": "...",
+  "task_id": "...",
   "extra_info": "...",
   "error": "..."
 }
+```
+
+
+## 示例图片
+
+[demo.png](demo.png)
