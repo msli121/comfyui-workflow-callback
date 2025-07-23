@@ -4,7 +4,7 @@ import execution
 import requests
 
 # 配置日志
-logger = logging.getLogger("comfyui-textin-watermark")
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 ch = logging.StreamHandler()
@@ -75,11 +75,12 @@ def int_patch():
     execution.execute = wrapped_execute
 
 
-def set_callback_settings(enable=False, url=None, task_id=None, extra_info=None):
+def set_callback_settings(enable=True, url=None, task_id=None, extra_info=None):
     callback_config["enable"] = enable
     callback_config["url"] = url
     callback_config["task_id"] = task_id
     callback_config["extra_info"] = extra_info
+    logger.info(f"[Workflow Callback] set callback config: {callback_config}")
 
 
 def _send(status, prompt_id, error=None):
