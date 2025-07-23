@@ -49,7 +49,7 @@ class SuccessCallbackConfig:
             response.raise_for_status()
             data = response.json()
             if data and data.get("queue_running") and len(data["queue_running"]) > 0:
-                return data.get("queue_running")[0]
+                return data.get("queue_running")[0][1]
             return None
         except Exception as e:
             logger.error(f"[Workflow Callback] get prompt id failed. error: {e}")
