@@ -112,7 +112,7 @@ def send_callback_req(enable=False, callback_url=None, status=None,
         "status": status,  # start, success, failed
         "prompt_id": prompt_id,
         "task_id": task_id,
-        "extra_info": extra_info or callback_config["extra_info"] or "",
+        "extra_info": extra_info,
         "error": error,
     }
     headers = {
@@ -121,8 +121,8 @@ def send_callback_req(enable=False, callback_url=None, status=None,
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
     }
     try:
-        logger.info(f"[Workflow Callback] Request. url {callback_config['url']}, payload: {payload}")
-        response = requests.post(callback_config["url"], headers=headers, json=payload, timeout=10)
+        logger.info(f"[Workflow Callback] Request. url {callback_url}, payload: {payload}")
+        response = requests.post(callback_url, headers=headers, json=payload, timeout=10)
         response.raise_for_status()
         logger.info(f"[Workflow Callback] Response: {response.text}")
     except Exception as e:

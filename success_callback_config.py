@@ -33,7 +33,9 @@ class SuccessCallbackConfig:
     def success_callback(self, enable=True, local_comfyui_url=None, callback_url="", task_id="", extra_info=None):
         try:
             prompt_id = self._get_prompt_id(local_comfyui_url)
-            send_callback_req(enable=enable, callback_url=callback_url, status="success",
+            send_callback_req(enable=enable,
+                              callback_url=callback_url,
+                              status="success",
                               prompt_id=prompt_id,
                               task_id=task_id,
                               extra_info=extra_info)
